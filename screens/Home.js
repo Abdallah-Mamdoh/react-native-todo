@@ -58,11 +58,11 @@ export default function Home() {
   // delete lists
   const handleDelete = (id) => {
     const prevlist = lists.filter((e) => e.id !== id);
-    console.log(prevlist);
-    console.log(id);
-    
     setLists(prevlist);
     setModalVisible(!modalVisible)
+    setAllState(1)
+    setActiveState(null)
+    setDoneState(null)   
   };
 
   const prepareDelete = (id)=>{
@@ -121,7 +121,7 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.container}>
       
-      <ImageBackground source={{uri:"https://media.istockphoto.com/id/1456363935/photo/hand-holding-pen-planning-to-do-list-on-a-notebook-laptop-and-coffee-cup-on-office-desk.webp?b=1&s=170667a&w=0&k=20&c=Tegu9VU2vXg2aeGFtDszmrUpBLoYn8cJucyJb83w_oQ="}} resizeMode="cover" style={{flex:1,justifyContent:"center",alignItems:"center",width:"100%"}}>
+      <ImageBackground source={{uri:"https://images.stockcake.com/public/5/5/6/55693698-733b-4366-bfb7-2f22eef7b328_large/mystical-music-emergence-stockcake.jpg"}} resizeMode="cover" style={{flex:1,justifyContent:"center",alignItems:"center",width:"100%"}}>
       <View style={styles.box}>
         <Text style={styles.header}>To-Do List App</Text>
 
