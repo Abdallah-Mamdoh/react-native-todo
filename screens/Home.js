@@ -1,7 +1,7 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import {AsyncStorage} from 'react-native';
 import {
   StyleSheet,
   Text,
@@ -11,66 +11,84 @@ import {
   TouchableOpacity,
   FlatList,
 } from "react-native";
-import TodoDetails from "./TodoDetails";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from "react-native-vector-icons/Ionicons";
 
 export default function Home() {
-  const [lists, setLists] = useState([{id:1,title:"Hello",description:"Welcome here",state:false},{id:2,title:"GYM",description:"Go to gym",state:false}]);
+  const [lists, setLists] = useState([
+    { id: 1, title: "Hello", description: "Welcome here", state: false },
+    { id: 2, title: "GYM", description: "Go to gym", state: false },
+  ]);
   const [title, onChangeTitle] = useState("");
-  const [displayed,setDisplayed] = useState([]);
+  const [displayed, setDisplayed] = useState([]);
   const [desc, onChangeDesc] = useState("");
-  const doneIcon = <Icon name="checkmark-done-outline" size={20} color="white" />;
+  const doneIcon = (
+    <Icon name="checkmark-done-outline" size={20} color="white" />
+  );
   const deleteIcon = <Icon name="trash-outline" size={20} color="white" />;
+  const navigate = useNavigation();
+  const [getData, setGetData] = useState([]);
 
-  useEffect(()=>{
-    setDisplayed(lists)
-  },[])
+  useEffect(() => {
+    setDisplayed(lists);
+    console.log(lists);
+  }, [lists]);
 
+  useEffect(() => {
+    console.log(getData);
+  }, [getData]);
+
+  //////////////////////////////////////////////////
+  // Add lists
   const handleAdd = () => {
-    setLists((prevList)=>[...prevList, {title: title, description: desc,state:false }]);
+    setLists((prevList) => [
+      ...prevList,
+      { title: title, description: desc, state: false, id: Date.now() },
+    ]);
     onChangeTitle("");
     onChangeDesc("");
   };
 
+  // delete lists
   const handleDelete = (id) => {
-    const prevlist = lists.filter((e)=>e.id != id) 
+    const prevlist = lists.filter((e) => e.id != id);
     setLists(prevlist);
-}
+  };
 
-const handleDone = (id) => {
-    const myList = lists.map(e=>e.id === id ? {...e,state:true} : e) 
+  //mark as done
+  const handleDone = (id) => {
+    const myList = lists.map((e) => (e.id === id ? { ...e, state: true } : e));
     setLists(myList);
-}
-// console.log(lists);
-  
-const getAll = () => {
-    // const myList = (prevList)=>{[...prevList,lists.filter(e=>e)]} 
+  };
+
+  // buttons func
+  const getAll = () => {
     setDisplayed(lists);
-}
-const getActive = () => {
-    // const myList = (prevList)=>{[...prevList,lists.filter(e=>e.state === false )]} 
-    setDisplayed(lists.filter(e=>e.state === false ));
-}
-const getDone = () => {
-    // const myList = (prevList)=>{[...prevList,lists.filter(e=>e.state === true ) ]} 
-    setDisplayed(lists.filter(e=>e.state === true ));
-}
-  
-console.log(displayed);
+  };
+  const getActive = () => {
+    setDisplayed(lists.filter((e) => e.state === false));
+  };
+  const getDone = () => {
+    setDisplayed(lists.filter((e) => e.state === true));
+  };
 
-//   _storeData = async () => {
-//     try {
-//       await AsyncStorage.setItem(
-//         'header',
-//         'Here is your todo details',
-//       );
-//     } catch (error) {
-//       "Error saving data"
-//     }
-//   };
+  //AsyncStorage
+  const StoreData = async (todos) => {
+    try {
+      await AsyncStorage.setItem("todo", JSON.stringify(todos));
+    } catch (error) {
+      ("Error saving data");
+    }
+  };
 
-  const navigate = useNavigation();
-
+  const LoadData = async () => {
+    try {
+      const todos = await AsyncStorage.getItem("todo");
+      return todos != null ? setGetData(JSON.parse(todos)) : [];
+    } catch (error) {
+      ("Error loading data");
+      return [];
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -119,6 +137,36 @@ console.log(displayed);
         <View
           style={{
             flexDirection: "row",
+            justifyContent: "center",
+            width: "90%",
+            marginVertical: 10,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              ...styles.listButtons,
+              marginRight: 10,
+              backgroundColor: "orange",
+            }}
+            onPress={() => {
+              StoreData(lists);
+            }}
+          >
+            <Text style={{ color: "white", fontSize: "15" }}>Set Data</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ ...styles.listButtons, backgroundColor: "orange" }}
+            onPress={() => {
+              LoadData();
+            }}
+          >
+            <Text style={{ color: "white", fontSize: "15" }}>Get Data</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
             justifyContent: "space-between",
             width: "90%",
             marginVertical: 10,
@@ -138,61 +186,68 @@ console.log(displayed);
         <FlatList
           data={displayed}
           renderItem={({ item }) => (
-            <View style={styles.listBox} >
-              <View style={{ display: "flex" }} >
-                <TouchableOpacity onPress={()=>{navigate.navigate('TodoDetails' ,{item})}}>
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 17,
-                    fontWeight: "bold",
-                    paddingBottom: 2,
+            <View style={styles.listBox}>
+              <View style={{ display: "flex" }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    navigate.navigate("TodoDetails", { item });
                   }}
                 >
-                  {item.title}
-                </Text>
-                <Text
-                  style={{
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 17,
+                      fontWeight: "bold",
+                      paddingBottom: 2,
+                    }}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={{
                       color: "rgba(0,0,0,0.5)",
                       fontSize: 15,
                       fontWeight: "500",
                     }}
-                    >
-                  {item.description}
-                </Text>
+                  >
+                    {item.description}
+                  </Text>
                 </TouchableOpacity>
               </View>
               <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity
-                onPress={()=>handleDone(item.id)}
+                  onPress={() => handleDone(item.id)}
                   style={{
                     ...styles.listButtons,
                     width: 35,
                     marginLeft: 5,
                     backgroundColor: "green",
-                    borderRadius:"50px"
+                    borderRadius: "50px",
                   }}
-                  
                 >
-                  <Text style={{ color: "white", fontSize: "15" }}>{doneIcon}</Text>
+                  <Text style={{ color: "white", fontSize: "15" }}>
+                    {doneIcon}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                onPress={()=>handleDelete(item.id)}
+                  onPress={() => handleDelete(item.id)}
                   style={{
                     ...styles.listButtons,
                     width: 35,
                     backgroundColor: "red",
                     marginLeft: 5,
-                    borderRadius:"50px"
+                    borderRadius: "50px",
                   }}
                 >
-                  <Text style={{ color: "white", fontSize: "12" }}>{deleteIcon}</Text>
+                  <Text style={{ color: "white", fontSize: "12" }}>
+                    {deleteIcon}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
-          keyExtractor={Date.now}
-          ></FlatList>
+          keyExtractor={(item) => item.id}
+        ></FlatList>
       </View>
     </SafeAreaView>
   );
