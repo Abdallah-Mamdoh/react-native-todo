@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -10,6 +9,10 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  Pressable,
+  Alert,
+  Modal,
+  ImageBackground
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
@@ -21,12 +24,15 @@ export default function Home() {
   const [title, onChangeTitle] = useState("");
   const [displayed, setDisplayed] = useState([]);
   const [desc, onChangeDesc] = useState("");
-  const doneIcon = (
-    <Icon name="checkmark-done-outline" size={20} color="white" />
-  );
+  const doneIcon = (<Icon name="checkmark-done-outline" size={20} color="white" />);
   const deleteIcon = <Icon name="trash-outline" size={20} color="white" />;
   const navigate = useNavigation();
   const [getData, setGetData] = useState([]);
+  const [allState,setAllState] = useState(1)
+  const [activeState,setActiveState] = useState(null)
+  const [doneState,setDoneState] = useState(null)
+  const [modalVisible, setModalVisible] = useState(false);
+
 
   useEffect(() => {
     setDisplayed(lists);
@@ -52,23 +58,36 @@ export default function Home() {
   const handleDelete = (id) => {
     const prevlist = lists.filter((e) => e.id != id);
     setLists(prevlist);
+    setModalVisible(!modalVisible)
   };
 
-  //mark as done
+  //done list
   const handleDone = (id) => {
     const myList = lists.map((e) => (e.id === id ? { ...e, state: true } : e));
     setLists(myList);
+    setAllState(1)
+    setActiveState(null)
+    setDoneState(null)
   };
 
   // buttons func
   const getAll = () => {
     setDisplayed(lists);
+    setAllState(1)
+    setActiveState(null)
+    setDoneState(null)
   };
   const getActive = () => {
     setDisplayed(lists.filter((e) => e.state === false));
+    setAllState(null)
+    setActiveState(1)
+    setDoneState(null)
   };
   const getDone = () => {
     setDisplayed(lists.filter((e) => e.state === true));
+    setAllState(null)
+    setActiveState(null)
+    setDoneState(1)
   };
 
   //AsyncStorage
@@ -92,7 +111,8 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
+      
+      <ImageBackground source={{uri:"https://media.istockphoto.com/id/1456363935/photo/hand-holding-pen-planning-to-do-list-on-a-notebook-laptop-and-coffee-cup-on-office-desk.webp?b=1&s=170667a&w=0&k=20&c=Tegu9VU2vXg2aeGFtDszmrUpBLoYn8cJucyJb83w_oQ="}} resizeMode="cover" style={{flex:1,justifyContent:"center",alignItems:"center",width:"100%"}}>
       <View style={styles.box}>
         <Text style={styles.header}>To-Do List App</Text>
 
@@ -172,13 +192,13 @@ export default function Home() {
             marginVertical: 10,
           }}
         >
-          <TouchableOpacity style={styles.listButtons} onPress={getAll}>
-            <Text style={{ color: "white", fontSize: "15" }}>All</Text>
+          <TouchableOpacity style={{...styles.listButtons,backgroundColor: allState ? "rgb(66, 65, 66)" : "rgb(29, 152, 241)"}} onPress={getAll}>
+            <Text style={{ color: "white", fontSize: "15"  }}>All</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.listButtons} onPress={getActive}>
+          <TouchableOpacity style={{...styles.listButtons,backgroundColor: activeState ? "rgb(66, 65, 66)" : "rgb(29, 152, 241)"}} onPress={getActive}>
             <Text style={{ color: "white", fontSize: "15" }}>Active</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.listButtons} onPress={getDone}>
+          <TouchableOpacity style={{...styles.listButtons,backgroundColor: doneState ? "rgb(66, 65, 66)" : "rgb(29, 152, 241)"}} onPress={getDone}>
             <Text style={{ color: "white", fontSize: "15" }}>Done</Text>
           </TouchableOpacity>
         </View>
@@ -187,7 +207,7 @@ export default function Home() {
           data={displayed}
           renderItem={({ item }) => (
             <View style={styles.listBox}>
-              <View style={{ display: "flex" }}>
+              <View style={{ flex:2}}>
                 <TouchableOpacity
                   onPress={() => {
                     navigate.navigate("TodoDetails", { item });
@@ -214,8 +234,8 @@ export default function Home() {
                   </Text>
                 </TouchableOpacity>
               </View>
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity
+              <View style={{ flexDirection: "row" ,flex:1.5}}>
+                {!item.state ?<TouchableOpacity
                   onPress={() => handleDone(item.id)}
                   style={{
                     ...styles.listButtons,
@@ -228,27 +248,57 @@ export default function Home() {
                   <Text style={{ color: "white", fontSize: "15" }}>
                     {doneIcon}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleDelete(item.id)}
-                  style={{
-                    ...styles.listButtons,
-                    width: 35,
-                    backgroundColor: "red",
-                    marginLeft: 5,
-                    borderRadius: "50px",
-                  }}
-                >
-                  <Text style={{ color: "white", fontSize: "12" }}>
-                    {deleteIcon}
-                  </Text>
-                </TouchableOpacity>
+                </TouchableOpacity>:null}
+                <View style={{ flexDirection: "row" ,flex:2.5}} >
+                    <Modal
+                       animationType="slide"
+                       transparent={true}
+                       visible={modalVisible}
+                       onRequestClose={() => {
+                         Alert.alert('Modal has been closed.');
+                         setModalVisible(!modalVisible);
+                       }}>
+                       <View style={styles.centeredView}>
+                         <View style={styles.modalView}>
+                           <Text style={styles.modalText}>Are you sure you want to delete this list?</Text>
+                           <View style={{flexDirection:"row"}}>
+                              <Pressable
+                                style={[styles.button, {backgroundColor:"rgb(54, 162, 171)",marginRight:10,width:70}]}
+                                onPress={() => handleDelete(item.id)}>
+                                <Text style={styles.textStyle}>Yes</Text>
+                              </Pressable>
+
+                              <Pressable
+                                style={[styles.button, {backgroundColor:"red",width:70}]}
+                                onPress={() => setModalVisible(!modalVisible)}>
+                                <Text style={styles.textStyle}>No</Text>
+                              </Pressable>
+                           </View>
+                         </View>
+                       </View>
+                     </Modal>
+                    <TouchableOpacity
+                      onPress={() => setModalVisible(true)}
+                      style={{
+                        ...styles.listButtons,
+                        flex:1.5,
+                        width: 35,
+                        backgroundColor: "red",
+                        borderRadius: "50px",
+                      }}
+                    >
+                      <Text style={{ color: "white", fontSize: "12" }}>
+                        {deleteIcon}
+                      </Text>
+                    </TouchableOpacity>
+                </View>
               </View>
             </View>
           )}
           keyExtractor={(item) => item.id}
-        ></FlatList>
+          ></FlatList>
       </View>
+          </ImageBackground>
     </SafeAreaView>
   );
 }
@@ -272,7 +322,7 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   header: {
-    color: "white",
+    color: "rgb(33, 110, 78)",
     fontSize: "30px",
     fontWeight: "700",
   },
@@ -282,19 +332,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 30,
-    height: "20%",
+    height: 70,
+    marginVertical:20
   },
   addBox: {
     display: "flex",
     justifyContent: "center",
     width: "90%",
-    height: "30%",
     marginRight: 20,
   },
   textInput: {
-    height: "80%",
+    flex:1,
+    flexDirection:"column",
     borderWidth: 1,
-    margin: 10,
+    marginBottom: 6,
     backgroundColor: "rgba(255,255,255,0.6)",
     paddingHorizontal: 10,
     borderRadius: "7px",
@@ -310,11 +361,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   listButtons: {
-    backgroundColor: "rgb(29, 152, 241)",
     width: 70,
     height: 35,
     borderRadius: "10px",
-    display: "flex",
+    flex:2,
+    marginRight:10,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -327,5 +378,40 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(54, 162, 171,0.7)",
     padding: 12,
     marginBottom: 10,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
