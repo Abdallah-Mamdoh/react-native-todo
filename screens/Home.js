@@ -32,6 +32,7 @@ export default function Home() {
   const [activeState,setActiveState] = useState(null)
   const [doneState,setDoneState] = useState(null)
   const [modalVisible, setModalVisible] = useState(false);
+  const [wantDelete, setWantDelete] = useState();
 
 
   useEffect(() => {
@@ -56,10 +57,18 @@ export default function Home() {
 
   // delete lists
   const handleDelete = (id) => {
-    const prevlist = lists.filter((e) => e.id != id);
+    const prevlist = lists.filter((e) => e.id !== id);
+    console.log(prevlist);
+    console.log(id);
+    
     setLists(prevlist);
     setModalVisible(!modalVisible)
   };
+
+  const prepareDelete = (id)=>{
+    setModalVisible(!modalVisible)
+    setWantDelete(id)
+  }
 
   //done list
   const handleDone = (id) => {
@@ -264,7 +273,7 @@ export default function Home() {
                            <View style={{flexDirection:"row"}}>
                               <Pressable
                                 style={[styles.button, {backgroundColor:"rgb(54, 162, 171)",marginRight:10,width:70}]}
-                                onPress={() => handleDelete(item.id)}>
+                                onPress={() => handleDelete(wantDelete)}>
                                 <Text style={styles.textStyle}>Yes</Text>
                               </Pressable>
 
@@ -278,7 +287,7 @@ export default function Home() {
                        </View>
                      </Modal>
                     <TouchableOpacity
-                      onPress={() => setModalVisible(true)}
+                      onPress={() => prepareDelete(item.id)}
                       style={{
                         ...styles.listButtons,
                         flex:1.5,
