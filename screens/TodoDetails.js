@@ -18,7 +18,7 @@ return(
             </View>
             <View style={{flexDirection:"column",alignItems:"center",justifyContent:"center",width:"90%"}}>
                <Text style={{fontSize:"30px", color:"orange"}}>Comment: </Text>
-               <Text style={{fontSize:"30px", color:"white"}}>{item.description}</Text>
+               <Text style={{fontSize:"30px", color:"white"}}>{item.desc}</Text>
             </View>
         </View>
     </SafeAreaView>
